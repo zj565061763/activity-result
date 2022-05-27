@@ -6,7 +6,7 @@ plugins {
 
 def libGroupId = "com.sd.lib.android"
 def libArtifactId = "activity-result"
-def libVersionName = "1.0.0-beta01"
+def libVersionName = "1.0.0-beta02"
 
 android {
     compileSdk 32
@@ -33,7 +33,7 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.4.1'
+    api 'androidx.appcompat:appcompat:1.4.1'
 }
 
 task generateSourcesJar(type: Jar) {
