@@ -34,7 +34,7 @@ class FActivityResult(activity: Activity) {
             return emptyActivityResultLauncher(contract)
         }
 
-        val key = _uuid + "#" + _nextLocalRequestCode.getAndIncrement()
+        val key = "${_uuid}#${_nextLocalRequestCode.getAndIncrement()}"
 
         val realCallback = ActivityResultCallback<O> {
             _launcherHolder.remove(key)
