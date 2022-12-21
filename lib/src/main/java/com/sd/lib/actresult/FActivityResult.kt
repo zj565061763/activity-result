@@ -34,12 +34,12 @@ class FActivityResult(activity: Activity) {
             return emptyActivityResultLauncher(contract)
         }
 
-        val key = generateKey()
+        val key = _uuid + "#" + _nextLocalRequestCode.getAndIncrement()
+
         val realCallback = ActivityResultCallback<O> {
             _launcherHolder.remove(key)
             callback.onActivityResult(it)
         }
-
         return with(_activity.activityResultRegistry) {
             register(key, contract, realCallback).also {
                 _launcherHolder[key] = it
@@ -56,10 +56,6 @@ class FActivityResult(activity: Activity) {
                 _launcherHolder.remove(item.key)
             }
         }
-    }
-
-    private fun generateKey(): String {
-        return _uuid + "#" + _nextLocalRequestCode.getAndIncrement()
     }
 
     private val _lifecycleEventObserver = object : LifecycleEventObserver {
