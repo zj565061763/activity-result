@@ -50,8 +50,7 @@ class FActivityResult(activity: Activity) {
     private fun unregister() {
         while (true) {
             if (_launcherHolder.isEmpty()) return
-            val copy = _launcherHolder.toMap()
-            copy.forEach { item ->
+            _launcherHolder.toMap().forEach { item ->
                 item.value.unregister()
                 _launcherHolder.remove(item.key)
             }
