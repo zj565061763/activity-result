@@ -19,7 +19,7 @@ class FActivityResult(activity: Activity) {
     private val _activity: ComponentActivity
     private val _uuid = UUID.randomUUID().toString()
     private val _nextLocalRequestCode = AtomicInteger()
-    private val _mapLauncher = mutableMapOf<String, ActivityResultLauncher<*>>()
+    private val _launcherHolder = mutableMapOf<String, ActivityResultLauncher<*>>()
 
     fun registerResult(callback: ActivityResultCallback<ActivityResult>): ActivityResultLauncher<Intent> {
         return register(ActivityResultContracts.StartActivityForResult(), callback)
@@ -45,12 +45,12 @@ class FActivityResult(activity: Activity) {
         val key = generateKey()
         val internalCallback = ActivityResultCallback<O> {
             synchronized(this@FActivityResult) {
-                _mapLauncher.remove(key)
+                _launcherHolder.remove(key)
             }
             callback.onActivityResult(it)
         }
         return _activity.activityResultRegistry.register(key, contract, internalCallback).also {
-            _mapLauncher[key] = it
+            _launcherHolder[key] = it
         }
     }
 
@@ -59,28 +59,14 @@ class FActivityResult(activity: Activity) {
      */
     @Synchronized
     private fun unregisterLauncher() {
-        _mapLauncher.values.forEach {
+        _launcherHolder.values.forEach {
             it.unregister()
         }
-        _mapLauncher.clear()
+        _launcherHolder.clear()
     }
 
     private fun generateKey(): String {
         return _uuid + "#" + _nextLocalRequestCode.getAndIncrement()
-    }
-
-    private fun <I, O> emptyActivityResultLauncher(contract: ActivityResultContract<I, O>): ActivityResultLauncher<I> {
-        return object : ActivityResultLauncher<I>() {
-            override fun launch(input: I, options: ActivityOptionsCompat?) {
-            }
-
-            override fun unregister() {
-            }
-
-            override fun getContract(): ActivityResultContract<I, *> {
-                return contract
-            }
-        }
     }
 
     private val _lifecycleEventObserver = object : LifecycleEventObserver {
@@ -99,6 +85,20 @@ class FActivityResult(activity: Activity) {
             if (Lifecycle.State.DESTROYED != currentState) {
                 addObserver(_lifecycleEventObserver)
             }
+        }
+    }
+}
+
+private fun <I, O> emptyActivityResultLauncher(contract: ActivityResultContract<I, O>): ActivityResultLauncher<I> {
+    return object : ActivityResultLauncher<I>() {
+        override fun launch(input: I, options: ActivityOptionsCompat?) {
+        }
+
+        override fun unregister() {
+        }
+
+        override fun getContract(): ActivityResultContract<I, *> {
+            return contract
         }
     }
 }
