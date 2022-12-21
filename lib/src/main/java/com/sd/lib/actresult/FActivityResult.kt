@@ -21,16 +21,8 @@ class FActivityResult(activity: Activity) {
     private val _nextLocalRequestCode = AtomicInteger()
     private val _launcherHolder = mutableMapOf<String, ActivityResultLauncher<*>>()
 
-    fun registerResult(callback: ActivityResultCallback<ActivityResult>): ActivityResultLauncher<Intent> {
+    fun startActivityForResult(callback: ActivityResultCallback<ActivityResult>): ActivityResultLauncher<Intent> {
         return register(ActivityResultContracts.StartActivityForResult(), callback)
-    }
-
-    fun registerPermission(callback: ActivityResultCallback<Boolean>): ActivityResultLauncher<String> {
-        return register(ActivityResultContracts.RequestPermission(), callback)
-    }
-
-    fun registerPermissions(callback: ActivityResultCallback<Map<String, Boolean>>): ActivityResultLauncher<Array<String>> {
-        return register(ActivityResultContracts.RequestMultiplePermissions(), callback)
     }
 
     @Synchronized

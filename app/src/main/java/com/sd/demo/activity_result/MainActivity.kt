@@ -19,7 +19,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     override fun onClick(v: View) {
         when (v.id) {
             R.id.btn_permission -> {
-                _activityResult.registerPermission {
+                _activityResult.register(ActivityResultContracts.RequestPermission()) {
                     logMsg { "registerPermission result:$it" }
                 }.launch(Manifest.permission.CAMERA)
             }
