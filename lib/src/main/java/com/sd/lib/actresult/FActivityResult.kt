@@ -42,6 +42,7 @@ class FActivityResult(activity: Activity) {
             }
             callback.onActivityResult(it)
         }
+
         return _activity.activityResultRegistry.register(key, contract, internalCallback).also {
             _launcherHolder[key] = it
         }
