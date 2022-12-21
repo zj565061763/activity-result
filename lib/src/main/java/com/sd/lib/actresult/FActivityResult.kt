@@ -36,7 +36,7 @@ class FActivityResult(activity: Activity) {
     @Synchronized
     fun <I, O> register(
         contract: ActivityResultContract<I, O>,
-        callback: ActivityResultCallback<O>
+        callback: ActivityResultCallback<O>,
     ): ActivityResultLauncher<I> {
         if (Lifecycle.State.DESTROYED == _activity.lifecycle.currentState) {
             return emptyActivityResultLauncher(contract)
