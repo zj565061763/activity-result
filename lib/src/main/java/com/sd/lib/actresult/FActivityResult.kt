@@ -83,20 +83,22 @@ class FActivityResult(activity: Activity) {
         }
     }
 
-    init {
-        require(activity is ComponentActivity) { "activity must be instance of ${ComponentActivity::class.java}" }
-        _activity = activity
+    private val _lifecycleEventObserver = object : LifecycleEventObserver {
+        override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+            if (Lifecycle.Event.ON_DESTROY == event) {
+                source.lifecycle.removeObserver(this)
+                unregisterLauncher()
+            }
+        }
+    }
 
-        val lifecycle = _activity.lifecycle
-        if (Lifecycle.State.DESTROYED != lifecycle.currentState) {
-            lifecycle.addObserver(object : LifecycleEventObserver {
-                override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
-                    if (Lifecycle.Event.ON_DESTROY == event) {
-                        lifecycle.removeObserver(this)
-                        unregisterLauncher()
-                    }
-                }
-            })
+    init {
+        require(activity is ComponentActivity) { "activity should be instance of ${ComponentActivity::class.java}" }
+        _activity = activity
+        _activity.lifecycle.run {
+            if (Lifecycle.State.DESTROYED != currentState) {
+                addObserver(_lifecycleEventObserver)
+            }
         }
     }
 }
