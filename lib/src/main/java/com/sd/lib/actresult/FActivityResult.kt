@@ -17,9 +17,10 @@ import java.util.concurrent.atomic.AtomicInteger
 
 class FActivityResult(activity: Activity) {
     private val _activity: ComponentActivity
+    private val _launcherHolder = mutableMapOf<String, ActivityResultLauncher<*>>()
+
     private val _uuid = UUID.randomUUID().toString()
     private val _nextLocalRequestCode = AtomicInteger()
-    private val _launcherHolder = mutableMapOf<String, ActivityResultLauncher<*>>()
 
     fun startActivityForResult(callback: ActivityResultCallback<ActivityResult>): ActivityResultLauncher<Intent> {
         return register(ActivityResultContracts.StartActivityForResult(), callback)
@@ -30,7 +31,7 @@ class FActivityResult(activity: Activity) {
         contract: ActivityResultContract<I, O>,
         callback: ActivityResultCallback<O>,
     ): ActivityResultLauncher<I> {
-        if (Lifecycle.State.DESTROYED == _activity.lifecycle.currentState) {
+        if (_activity.isFinishing) {
             return emptyActivityResultLauncher(contract)
         }
 
@@ -50,7 +51,7 @@ class FActivityResult(activity: Activity) {
      * 取消注册
      */
     @Synchronized
-    private fun unregisterLauncher() {
+    private fun unregister() {
         _launcherHolder.values.forEach {
             it.unregister()
         }
@@ -65,7 +66,7 @@ class FActivityResult(activity: Activity) {
         override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
             if (Lifecycle.Event.ON_DESTROY == event) {
                 source.lifecycle.removeObserver(this)
-                unregisterLauncher()
+                unregister()
             }
         }
     }
