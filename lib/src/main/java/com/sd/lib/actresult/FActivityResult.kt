@@ -35,11 +35,11 @@ class FActivityResult(activity: Activity) {
         }
 
         val key = "${_uuid}#${_nextLocalRequestCode.getAndIncrement()}"
-
         val realCallback = ActivityResultCallback<O> {
             _launcherHolder.remove(key)
             callback.onActivityResult(it)
         }
+
         return with(_activity.activityResultRegistry) {
             register(key, contract, realCallback).also {
                 _launcherHolder[key] = it
