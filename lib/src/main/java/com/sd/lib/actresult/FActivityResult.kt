@@ -17,16 +17,15 @@ import java.util.concurrent.atomic.AtomicInteger
 
 class FActivityResult(activity: Activity) {
     private val _activity: ComponentActivity
-    private val _launcherHolder = mutableMapOf<String, ActivityResultLauncher<*>>()
+    private val _launcherHolder: MutableMap<String, ActivityResultLauncher<*>> = Collections.synchronizedMap(hashMapOf())
 
     private val _uuid = UUID.randomUUID().toString()
     private val _nextLocalRequestCode = AtomicInteger()
 
-    fun startActivityForResult(callback: ActivityResultCallback<ActivityResult>): ActivityResultLauncher<Intent> {
+    fun registerForActivityResult(callback: ActivityResultCallback<ActivityResult>): ActivityResultLauncher<Intent> {
         return register(ActivityResultContracts.StartActivityForResult(), callback)
     }
 
-    @Synchronized
     fun <I, O> register(
         contract: ActivityResultContract<I, O>,
         callback: ActivityResultCallback<O>,
@@ -36,27 +35,27 @@ class FActivityResult(activity: Activity) {
         }
 
         val key = generateKey()
-        val internalCallback = ActivityResultCallback<O> {
-            synchronized(this@FActivityResult) {
-                _launcherHolder.remove(key)
-            }
+        val realCallback = ActivityResultCallback<O> {
+            _launcherHolder.remove(key)
             callback.onActivityResult(it)
         }
 
-        return _activity.activityResultRegistry.register(key, contract, internalCallback).also {
-            _launcherHolder[key] = it
+        return with(_activity.activityResultRegistry) {
+            register(key, contract, realCallback).also {
+                _launcherHolder[key] = it
+            }
         }
     }
 
-    /**
-     * 取消注册
-     */
-    @Synchronized
     private fun unregister() {
-        _launcherHolder.values.forEach {
-            it.unregister()
+        while (true) {
+            if (_launcherHolder.isEmpty()) return
+            val copy = _launcherHolder.toMap()
+            copy.forEach { item ->
+                item.value.unregister()
+                _launcherHolder.remove(item.key)
+            }
         }
-        _launcherHolder.clear()
     }
 
     private fun generateKey(): String {
