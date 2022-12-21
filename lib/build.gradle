@@ -9,6 +9,7 @@ def libArtifactId = "activity-result"
 def libVersionName = "1.0.0-beta02"
 
 android {
+    namespace 'com.sd.lib.actresult'
     compileSdk 33
     defaultConfig {
         minSdk 21
