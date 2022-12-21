@@ -1,7 +1,9 @@
 package com.sd.demo.activity_result
 
 import android.Manifest
+import android.content.Intent
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
@@ -20,13 +22,17 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         when (v.id) {
             R.id.btn_permission -> {
                 _activityResult.register(ActivityResultContracts.RequestPermission()) {
-                    logMsg { "registerPermission result:$it" }
+                    logMsg { "register RequestPermission result:$it" }
                 }.launch(Manifest.permission.CAMERA)
             }
             R.id.btn_picture -> {
-                _activityResult.register(ActivityResultContracts.TakePicturePreview()) {
-                    logMsg { "register TakePicturePreview result:$it" }
-                }.launch(null)
+                _activityResult.registerForActivityResult {
+                    logMsg { "register picture ${it.data}" }
+                }.launch(
+                    Intent(Intent.ACTION_PICK, null).apply {
+                        this.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*")
+                    }
+                )
             }
         }
     }
